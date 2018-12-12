@@ -2,74 +2,83 @@
 % Author: Andrew Foster
 %
 % Flow analysis in the transonic region of a convergent-divergent nozzle
-% with a circular convergent contour, based to the work of Kliegel and
-% Levine, 1969
+% with a circular, parabolic, or rectangular hyperbolic convergent contour,
+% based to the work of Dutton and Addy, 1981
 
 clear;
 clc
 
 gm = 1.4;
-rcsub = 2;
-M_spec = 1.005;
+rcsub = 0.625;
+M_spec = 1;
+contour_type = 1; % 1 for circular, 0 for parabolic, -1 for hyperbolic
+nu = 1;
 
-nu_w = 0.5*log((1+((1+2*rcsub)^0.5)/(1+rcsub))/(1-((1+2*rcsub)^0.5)/(1+rcsub)));
-nu = 0:0.01*nu_w:nu_w;
+expan = 1/(rcsub + nu);
 
-xi = zeros(1,length(nu));
-xi(1) = 0.2;
-xi_delta = pi/4;
+x = 0.3;
+x_delta = 0.2;
 
-for i=1:length(nu)
+y = 0;
+y_delta = 0.01;
+
+a = 0;
+i = 1;
+
+while a~=1
     
     h = 0;
     
-    xi_low = xi(i) - xi_delta;
-    xi_hi = xi(i) + xi_delta;
+    x_low = x(i) - x_delta;
+    x_hi = x(i) + x_delta;
     
-    [M_low, ~, ~] = trans_nozzle(nu(i), xi_low, gm, rcsub);
-    [M_hi, ~, ~] = trans_nozzle(nu(i), xi_hi, gm, rcsub);
+    M_low = trans_nozzle(nu, x_low, y(i), gm, expan);
+    M_hi = trans_nozzle(nu, x_hi, y(i), gm, expan);
             
-    xi(i) = (xi_hi - xi_low)*((M_spec - M_low)/(M_hi - M_low)) + xi_low;
+    x(i) = (x_hi - x_low)*((M_spec - M_low)/(M_hi - M_low)) + x_low;
     
     while h ~= 1
         
-        [M, z(i), r(i)] = trans_nozzle(nu(i), xi(i), gm, rcsub);
+        M(i) = trans_nozzle(nu, x(i), y(i), gm, expan);
+        y_w(i) = 1 + 0.5*expan*x(i)^2 + (0.5*nu*x(i)^2)*expan^2 + ...
+            (0.5*(nu^2)*(x(i)^2)+0.125*contour_type*x(i)^4)*expan^3;
         
-        if M < (1+1e-6)*M_spec && M > (1-1e-6)*M_spec
-            if i<length(nu)
-                xi(i+1) = xi(i);
+        if M(i) < (1+1e-6)*M_spec && M(i) > (1-1e-6)*M_spec
+            if y(i)>=y_w
                 h = 1;
+                a = 1;
             else
+                x(i+1) = x(i);
+                x_delta = 0.075;
+                y(i+1) = y(i) + y_delta;
                 h = 1;
             end
             
         else
-            xi_delta = 0.7*xi_delta;
-            xi_low = xi(i) - xi_delta;
-            xi_hi = xi(i) + xi_delta;
+            x_delta = 0.7*x_delta;
+            x_low = x(i) - x_delta;
+            x_hi = x(i) + x_delta;
             
-            [M_low, ~, ~] = trans_nozzle(nu(i), xi_low, gm, rcsub);
-            [M_hi, ~, ~] = trans_nozzle(nu(i), xi_hi, gm, rcsub);
+            M_low = trans_nozzle(nu, x_low, y(i), gm, expan);
+            M_hi = trans_nozzle(nu, x_hi, y(i), gm, expan);
             
-            xi(i) = (xi_hi - xi_low)*((M_spec - M_low)/(M_hi - M_low)) + xi_low;
+            x(i) = (x_hi - x_low)*((M_spec - M_low)/(M_hi - M_low)) + x_low;
             
         end
     end
-end
-
-xi_w = min(xi):(max(xi)-min(xi))*0.01:max(xi);
-
-for i = 1:length(xi_w)
     
-    r_w(i) = ((1+2*rcsub)^0.5)*sinh(nu_w)/(cosh(nu_w)+cos(xi_w(i)));
-    z_w(i) = ((1+2*rcsub)^0.5)*sin(xi_w(i))/(cosh(nu_w)+cos(xi_w(i)));
+    i = i+1;
     
 end
+
+cd2 = -(8*gm+21-48*nu)/2304;
+cd3 = (754*gm^2+(1971-2880*nu)*gm+2007-7560*nu+8640*nu^2)/276480;
+cd = 1 - (gm+1)*(expan^2)*(1/96 + cd2*expan + cd3*expan^2);
 
 hold on
-plot(z,r)
-plot(z_w,r_w,'r')
+plot(x,y)
+plot(x,y_w,'r')
 
-ax_range = max(r_w);
+ax_range = max(y_w);
 
 axis([-0.5 0.5 0 1]*ax_range)

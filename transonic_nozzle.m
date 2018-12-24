@@ -26,9 +26,9 @@ gm = 1.4;
 rcsub = 2;
 M_spec = 1;
 contour_type = 1; % 1 for circular, 0 for parabolic, -1 for hyperbolic
-nu = 1;
+eta = 1;
 
-expan = 1/(rcsub + nu);
+expan = 1/(rcsub + eta);
 
 x = 0.3;
 x_delta = 0.2;
@@ -45,22 +45,22 @@ while a~=1
     
     while h ~= 1
         
-        M(i) = trans_nozzle(nu, x(i), y(i), gm, expan);
-        y_w(i) = 1 + 0.5*expan*x(i)^2 + (0.5*nu*x(i)^2)*expan^2 + ...
-            (0.5*(nu^2)*(x(i)^2)+0.125*contour_type*x(i)^4)*expan^3;
+        M(i) = trans_nozzle(eta, x(i), y(i), gm, expan);
+        y_w(i) = 1 + 0.5*expan*x(i)^2 + (0.5*eta*x(i)^2)*expan^2 + ...
+            (0.5*(eta^2)*(x(i)^2)+0.125*contour_type*x(i)^4)*expan^3;
         
         if M(i) >= (1+1e-6)*M_spec
             x_delta = 0.7*x_delta;
             x2 = x(i) - x_delta;
             
-            M_low = trans_nozzle(nu, x2, y(i), gm, expan);
+            M_low = trans_nozzle(eta, x2, y(i), gm, expan);
             
             x(i) = (x(i) - x2)*((M_spec - M_low)/(M(i) - M_low)) + x2;
         elseif M(i) <= (1-1e-6)*M_spec
             x_delta = 0.7*x_delta;
             x2 = x(i) + x_delta;
             
-            M_low = trans_nozzle(nu, x2, y(i), gm, expan);
+            M_low = trans_nozzle(eta, x2, y(i), gm, expan);
             
             x(i) = (x(i) - x2)*((M_spec - M_low)/(M(i) - M_low)) + x2;
         else
@@ -86,43 +86,43 @@ xw1 = (y(length(y)) - y_w(length(y_w)))/...
     ((y_w(length(y_w)) - y_w(length(y_w)-1))/(x(length(x)) - x(length(x)-1)) - ...
     (y(length(y)) - y(length(y)-1))/(x(length(x)) - x(length(x)-1)));
     
-yw1 = 1 + 0.5*expan*xw1^2 + (0.5*nu*xw1^2)*expan^2 + ...
-    (0.5*(nu^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
+yw1 = 1 + 0.5*expan*xw1^2 + (0.5*eta*xw1^2)*expan^2 + ...
+    (0.5*(eta^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
     
 h = 0;
     
 while h ~= 1
         
-    Mw1 = trans_nozzle(nu, xw1, yw1, gm, expan);
+    Mw1 = trans_nozzle(eta, xw1, yw1, gm, expan);
     
     if Mw1 > (1+1e-6)*M_spec
         x_delta = 0.7*x_delta;
         xw2 = xw1 - x_delta;
         
-        M_low = trans_nozzle(nu, xw2, yw1, gm, expan);
+        M_low = trans_nozzle(eta, xw2, yw1, gm, expan);
         
         xw1 = (xw1 - xw2)*((M_spec - M_low)/(Mw1 - M_low)) + xw2;
     elseif Mw1 < (1-1e-6)*M_spec
         x_delta = 0.7*x_delta;
         xw2 = xw1 + x_delta;
         
-        M_low = trans_nozzle(nu, xw2, yw1, gm, expan);
+        M_low = trans_nozzle(eta, xw2, yw1, gm, expan);
             
         xw1 = (xw1 - xw2)*((M_spec - M_low)/(Mw1 - M_low)) + xw2;
     else
-        yw2 = 1 + 0.5*expan*xw1^2 + (0.5*nu*xw1^2)*expan^2 + ...
-            (0.5*(nu^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
+        yw2 = 1 + 0.5*expan*xw1^2 + (0.5*eta*xw1^2)*expan^2 + ...
+            (0.5*(eta^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
             
         if yw2>yw1*(1+1e-8)
             x_delta = 0.7*x_delta;
             xw1 = xw1 - x_delta;
-            yw1 = 1 + 0.5*expan*xw1^2 + (0.5*nu*xw1^2)*expan^2 + ...
-                (0.5*(nu^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
+            yw1 = 1 + 0.5*expan*xw1^2 + (0.5*eta*xw1^2)*expan^2 + ...
+                (0.5*(eta^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
         elseif yw2<yw1*(1-1e-8)
             x_delta = 0.7*x_delta;
             xw1 = xw1 + x_delta;
-            yw1 = 1 + 0.5*expan*xw1^2 + (0.5*nu*xw1^2)*expan^2 + ...
-                (0.5*(nu^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
+            yw1 = 1 + 0.5*expan*xw1^2 + (0.5*eta*xw1^2)*expan^2 + ...
+                (0.5*(eta^2)*(xw1^2)+0.125*contour_type*xw1^4)*expan^3;
         else
             h = 1;
         end
@@ -134,8 +134,8 @@ y = [y(1:(i-3)), yw1];
 y_w = [y_w(1:(i-3)), yw2];
 M = [M(1:(i-3)), Mw1];
 
-cd2 = -(8*gm+21-48*nu)/2304;
-cd3 = (754*gm^2+(1971-2880*nu)*gm+2007-7560*nu+8640*nu^2)/276480;
+cd2 = -(8*gm+21-48*eta)/2304;
+cd3 = (754*gm^2+(1971-2880*eta)*gm+2007-7560*eta+8640*eta^2)/276480;
 cd = 1 - (gm+1)*(expan^2)*(1/96 + cd2*expan + cd3*expan^2);
 
 hold on

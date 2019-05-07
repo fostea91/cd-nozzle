@@ -19,6 +19,16 @@
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+%   This function provides the line at which sonic conditions are achieved
+%   in the throat of a nozzle.
+%   gm = specific heat ratio
+%   rcsub = the wall radius of curvature in the subsonic region
+%   M_spec = the Mach value for the calculated line
+%   contour_type =  1 for circular arc
+%                   0 for parabolic
+%                   -1 for hyperbolic
+%   eta = should be set to 1 for most solutions
+
 function sonic_line_calc = sonic_line(gm, rcsub, M_spec, contour_type, eta)
 
 expan = 1/(rcsub + eta);
@@ -126,6 +136,7 @@ sonic_line_calc.x = [x(1:(i-3)), xw1];
 sonic_line_calc.y = [y(1:(i-3)), yw1];
 sonic_line_calc.y_w = [y_w(1:(i-3)), yw2];
 sonic_line_calc.M = [M(1:(i-3)), Mw1];
+[sonic_line_calc.p, sonic_line_calc.S] = polyfit(sonic_line_calc.y, sonic_line_calc.x, 2);
 
 end
 
